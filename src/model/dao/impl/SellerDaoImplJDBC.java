@@ -50,16 +50,32 @@ public class SellerDaoImplJDBC implements SellerDao {
 				throw new DbException("Unespected error! No rows affected!");
 			}
 		} catch (SQLException e) {
-			System.out.println(e.getMessage());
-//			throw new DbException(e.getMessage());
-		}finally {
+			throw new DbException(e.getMessage());
+		} finally {
 			DB.closeStatement(st);
 		}
 	}
 
 	@Override
 	public void update(Seller obj) {
+		PreparedStatement st = null;
+		try {
+			st = conn.prepareStatement(
+					"UPDATE seller SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? WHERE Id = ?",
+					Statement.RETURN_GENERATED_KEYS);
+			st.setString(1, obj.getName());
+			st.setString(2, obj.getEmail());
+			st.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+			st.setDouble(4, obj.getBaseSalary());
+			st.setInt(5, obj.getDepartment().getId());
+			st.setInt(6, obj.getId());
 
+			st.executeUpdate();
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+		}
 	}
 
 	@Override
@@ -73,9 +89,8 @@ public class SellerDaoImplJDBC implements SellerDao {
 		ResultSet rs = null;
 
 		try {
-			st = conn.prepareStatement(
-					"SELECT seller.*, department.name AS depname FROM seller INNER JOIN department "
-							+ "ON seller.departmentid = department.id WHERE seller.id = ?");
+			st = conn.prepareStatement("SELECT seller.*, department.name AS depname FROM seller INNER JOIN department "
+					+ "ON seller.departmentid = department.id WHERE seller.id = ?");
 			st.setInt(1, id);
 			rs = st.executeQuery();
 			if (rs.next()) {
@@ -116,8 +131,7 @@ public class SellerDaoImplJDBC implements SellerDao {
 
 		try {
 			st = conn.prepareStatement("SELECT seller.*,department.name as depname "
-					+ "FROM seller INNER JOIN department ON seller.departmentid = department.id "
-					+ "ORDER BY name");
+					+ "FROM seller INNER JOIN department ON seller.departmentid = department.id " + "ORDER BY name");
 			rs = st.executeQuery();
 			List<Seller> list = new ArrayList<>();
 			Map<Integer, Department> map = new HashMap<>();
@@ -144,7 +158,8 @@ public class SellerDaoImplJDBC implements SellerDao {
 		ResultSet rs = null;
 
 		try {
-			st = conn.prepareStatement("SELECT seller.*,department.name as depname FROM seller INNER JOIN department ON seller.departmentid = department.id WHERE departmentid = ? ORDER BY name");
+			st = conn.prepareStatement(
+					"SELECT seller.*,department.name as depname FROM seller INNER JOIN department ON seller.departmentid = department.id WHERE departmentid = ? ORDER BY name");
 			st.setInt(1, department.getId());
 			rs = st.executeQuery();
 			List<Seller> list = new ArrayList<>();
