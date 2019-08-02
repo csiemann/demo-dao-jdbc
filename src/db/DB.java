@@ -67,15 +67,4 @@ public class DB {
 			}
 		}
 	}
-
-	public static void main(String[] args) {
-		try {
-			Connection c = new DB().getConnection();
-			c.close();
-			System.out.println("ok!");
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 }
